@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL_SENT
+  NEGOTIATION
+  WON
+  LOST
+}
+
+model Lead {
+  id          Int          @id @default(autoincrement())
+  name        String
+  company     String?
+  phone       String?
+  status      LeadStatus   @default(NEW)
+  followUpAt  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  discussions Discussion[]
+
+  @@index([status, followUpAt])
+  @@index([createdAt])
+  @@index([name])
+}
+
+model Discussion {
+  id         Int       @id @default(autoincrement())
+  note       String
+  createdAt  DateTime  @default(now())
+  followUpAt DateTime?
+  leadId     Int
+  lead       Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, createdAt])
+  @@index([followUpAt])
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([createdAt])
+}
